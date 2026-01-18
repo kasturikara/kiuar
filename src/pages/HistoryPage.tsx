@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { Card, Button, Modal } from "@/components/ui";
 import { batchApi, qrItemApi } from "@/services";
 import { downloadImage } from "@/utils";
+import { env } from "@/config";
 import type { QRBatch, QRItem } from "@/types";
 import QRCode from "qrcode";
 import JSZip from "jszip";
@@ -25,7 +26,7 @@ const HistoryPage = () => {
   // Generate QR code data URL for preview/download
   const generateQRDataUrl = useCallback(
     async (shortCode: string): Promise<string> => {
-      const redirectUrl = `${window.location.origin}/r/${shortCode}`;
+      const redirectUrl = `${env.APP_URL}/r/${shortCode}`;
       return QRCode.toDataURL(redirectUrl, {
         width: 512,
         margin: 2,
@@ -377,7 +378,7 @@ const HistoryPage = () => {
                   </a>
                   <p className="text-sm font-medium mt-4">Redirect URL</p>
                   <code className="bg-base-300 px-3 py-1 rounded text-xs block break-all">
-                    {window.location.origin}/r/{previewItem.short_code}
+                    {env.APP_URL}/r/{previewItem.short_code}
                   </code>
                   <div className="flex gap-2 mt-4 justify-center">
                     <span className="badge badge-info">

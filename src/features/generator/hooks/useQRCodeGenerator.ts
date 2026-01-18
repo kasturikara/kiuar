@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import type { QRCodeGenerateOptions, QRItem, CreateQRItemDTO } from "@/types";
 import { batchApi, qrItemApi } from "@/services";
 import { generateShortCode } from "@/utils";
+import { env } from "@/config";
 
 interface GeneratedQRItem extends QRItem {
   dataUrl: string;
@@ -48,7 +49,7 @@ export const useQRCodeGenerator = () => {
         await Promise.all(
           urls.map(async (url) => {
             const shortCode = generateShortCode();
-            const redirectUrl = `${window.location.origin}/r/${shortCode}`;
+            const redirectUrl = `${env.APP_URL}/r/${shortCode}`;
             const dataUrl = await generateQRDataUrl(redirectUrl, options);
 
             return {

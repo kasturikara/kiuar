@@ -6,6 +6,7 @@ import {
   CSVUploader,
   URLList,
   QRPreviewGrid,
+  LogoUploader,
   useQRCodeGenerator,
   useGeneratorStore,
 } from "@/features/generator";
@@ -18,8 +19,10 @@ const HomePage = () => {
   const batchTitle = useGeneratorStore((state) => state.batchTitle);
   const batchSource = useGeneratorStore((state) => state.batchSource);
   const itemName = useGeneratorStore((state) => state.itemName);
+  const logoDataUrl = useGeneratorStore((state) => state.logoDataUrl);
   const setBatchTitle = useGeneratorStore((state) => state.setBatchTitle);
   const setItemName = useGeneratorStore((state) => state.setItemName);
+  const clearLogo = useGeneratorStore((state) => state.clearLogo);
   const setGeneratedItems = useGeneratorStore(
     (state) => state.setGeneratedItems
   );
@@ -43,6 +46,7 @@ const HomePage = () => {
         source: batchSource,
         options,
         itemName: itemName || undefined,
+        logoDataUrl: logoDataUrl || undefined,
       });
       setGeneratedItems(results);
     } catch (err) {
@@ -67,6 +71,7 @@ const HomePage = () => {
     clearUrls();
     setBatchTitle("");
     setItemName("");
+    clearLogo();
     setError(null);
   };
 
@@ -94,6 +99,7 @@ const HomePage = () => {
             value={itemName}
             onChange={(e) => setItemName(e.target.value)}
           />
+          <LogoUploader />
         </div>
       </Card>
 

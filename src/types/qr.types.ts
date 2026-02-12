@@ -64,4 +64,5 @@ export interface QRCodeGenerateOptions {
     dark?: string;
     light?: string;
   };
+  errorCorrectionLevel?: "L" | "M" | "Q" | "H";
 }

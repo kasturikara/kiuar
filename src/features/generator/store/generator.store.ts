@@ -10,6 +10,9 @@ interface GeneratorState {
   batchSource: "manual" | "csv";
   // Optional item name prefix (each item gets "{name} 1", "{name} 2", etc.)
   itemName: string;
+  // Logo overlay (batch-level, not persisted)
+  logoDataUrl: string | null;
+  logoFileName: string | null;
   // QR generation options
   options: QRCodeGenerateOptions;
   // Generated QR items (after generation)
@@ -22,6 +25,8 @@ interface GeneratorState {
   setBatchTitle: (title: string) => void;
   setBatchSource: (source: "manual" | "csv") => void;
   setItemName: (name: string) => void;
+  setLogo: (dataUrl: string, fileName: string) => void;
+  clearLogo: () => void;
   setOptions: (options: Partial<QRCodeGenerateOptions>) => void;
   setGeneratedItems: (items: (QRItem & { dataUrl: string })[]) => void;
   reset: () => void;
@@ -32,6 +37,8 @@ const initialState = {
   batchTitle: "",
   batchSource: "manual" as const,
   itemName: "",
+  logoDataUrl: null as string | null,
+  logoFileName: null as string | null,
   options: {
     width: 256,
     margin: 2,
@@ -57,6 +64,8 @@ export const useGeneratorStore = create<GeneratorState>((set) => ({
   setBatchTitle: (batchTitle) => set({ batchTitle }),
   setBatchSource: (batchSource) => set({ batchSource }),
   setItemName: (itemName) => set({ itemName }),
+  setLogo: (logoDataUrl, logoFileName) => set({ logoDataUrl, logoFileName }),
+  clearLogo: () => set({ logoDataUrl: null, logoFileName: null }),
   setOptions: (options) =>
     set((state) => ({ options: { ...state.options, ...options } })),
   setGeneratedItems: (generatedItems) => set({ generatedItems }),

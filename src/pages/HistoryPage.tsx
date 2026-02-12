@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Card, Button, Modal } from "@/components/ui";
 import { batchApi, qrItemApi } from "@/services";
 import { downloadImage } from "@/utils";
-import { env } from "@/config";
 import type { QRBatch, QRItem } from "@/types";
 import QRCode from "qrcode";
 import JSZip from "jszip";
@@ -25,9 +24,8 @@ const HistoryPage = () => {
 
   // Generate QR code data URL for preview/download
   const generateQRDataUrl = useCallback(
-    async (shortCode: string): Promise<string> => {
-      const redirectUrl = `${env.APP_URL}/r/${shortCode}`;
-      return QRCode.toDataURL(redirectUrl, {
+    async (originalUrl: string): Promise<string> => {
+      return QRCode.toDataURL(originalUrl, {
         width: 512,
         margin: 2,
         color: {
@@ -45,7 +43,7 @@ const HistoryPage = () => {
       setPreviewItem(item);
       setGeneratingQR(true);
       try {
-        const dataUrl = await generateQRDataUrl(item.short_code);
+        const dataUrl = await generateQRDataUrl(item.original_url);
         setPreviewDataUrl(dataUrl);
       } catch (err) {
         console.error("Failed to generate QR code:", err);
@@ -66,9 +64,11 @@ const HistoryPage = () => {
   const handleDownloadQR = useCallback(
     async (item: QRItem) => {
       try {
-        const dataUrl = await generateQRDataUrl(item.short_code);
-        const hostname = new URL(item.original_url).hostname;
-        downloadImage(dataUrl, `qr-${hostname}-${item.short_code}.png`);
+        const dataUrl = await generateQRDataUrl(item.original_url);
+        const filename = item.name
+          ? `qr-${item.name}.png`
+          : `qr-${new URL(item.original_url).hostname}-${item.short_code}.png`;
+        downloadImage(dataUrl, filename);
       } catch (err) {
         console.error("Failed to download QR code:", err);
       }
@@ -79,11 +79,10 @@ const HistoryPage = () => {
   // Download from preview modal
   const handleDownloadFromPreview = useCallback(() => {
     if (previewItem && previewDataUrl) {
-      const hostname = new URL(previewItem.original_url).hostname;
-      downloadImage(
-        previewDataUrl,
-        `qr-${hostname}-${previewItem.short_code}.png`
-      );
+      const filename = previewItem.name
+        ? `qr-${previewItem.name}.png`
+        : `qr-${new URL(previewItem.original_url).hostname}-${previewItem.short_code}.png`;
+      downloadImage(previewDataUrl, filename);
     }
   }, [previewItem, previewDataUrl]);
 
@@ -99,11 +98,12 @@ const HistoryPage = () => {
 
       // Generate QR codes and add to ZIP
       for (const item of items) {
-        const dataUrl = await generateQRDataUrl(item.short_code);
+        const dataUrl = await generateQRDataUrl(item.original_url);
         // Convert data URL to base64
         const base64Data = dataUrl.split(",")[1];
-        const hostname = new URL(item.original_url).hostname;
-        const filename = `qr-${hostname}-${item.short_code}.png`;
+        const filename = item.name
+          ? `qr-${item.name}.png`
+          : `qr-${new URL(item.original_url).hostname}-${item.short_code}.png`;
         zip.file(filename, base64Data, { base64: true });
       }
 
@@ -264,6 +264,7 @@ const HistoryPage = () => {
                   <table className="table table-zebra">
                     <thead>
                       <tr>
+                        <th>Name</th>
                         <th>Short Code</th>
                         <th>Original URL</th>
                         <th>Scans</th>
@@ -274,6 +275,15 @@ const HistoryPage = () => {
                     <tbody>
                       {items.map((item) => (
                         <tr key={item.id}>
+                          <td>
+                            {item.name ? (
+                              <span className="font-medium text-sm">
+                                {item.name}
+                              </span>
+                            ) : (
+                              <span className="text-base-content/40 text-sm">-</span>
+                            )}
+                          </td>
                           <td>
                             <code className="bg-base-300 px-2 py-1 rounded text-sm">
                               {item.short_code}
@@ -363,6 +373,14 @@ const HistoryPage = () => {
                   />
                 </div>
                 <div className="text-center space-y-2 w-full mt-6">
+                  {previewItem.name && (
+                    <>
+                      <p className="text-sm font-medium">Name</p>
+                      <p className="text-base font-semibold">
+                        {previewItem.name}
+                      </p>
+                    </>
+                  )}
                   <p className="text-sm font-medium">Short Code</p>
                   <code className="bg-base-300 px-3 py-1 rounded text-sm block">
                     {previewItem.short_code}
@@ -376,10 +394,6 @@ const HistoryPage = () => {
                   >
                     {previewItem.original_url}
                   </a>
-                  <p className="text-sm font-medium mt-4">Redirect URL</p>
-                  <code className="bg-base-300 px-3 py-1 rounded text-xs block break-all">
-                    {env.APP_URL}/r/{previewItem.short_code}
-                  </code>
                   <div className="flex gap-2 mt-4 justify-center">
                     <span className="badge badge-info">
                       {previewItem.scan_count} scans

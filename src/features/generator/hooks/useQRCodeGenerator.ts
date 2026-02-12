@@ -4,7 +4,6 @@ import QRCode from "qrcode";
 import type { QRCodeGenerateOptions, QRItem, CreateQRItemDTO } from "@/types";
 import { batchApi, qrItemApi } from "@/services";
 import { generateShortCode } from "@/utils";
-import { env } from "@/config";
 
 interface GeneratedQRItem extends QRItem {
   dataUrl: string;
@@ -15,6 +14,7 @@ interface GenerateBatchParams {
   title: string;
   source: "manual" | "csv";
   options?: QRCodeGenerateOptions;
+  itemName?: string;
 }
 
 export const useQRCodeGenerator = () => {
@@ -37,6 +37,7 @@ export const useQRCodeGenerator = () => {
       title,
       source,
       options,
+      itemName,
     }: GenerateBatchParams): Promise<GeneratedQRItem[]> => {
       // 1. Create batch record
       const batch = await batchApi.create({
@@ -47,27 +48,28 @@ export const useQRCodeGenerator = () => {
       // 2. Generate QR codes and prepare items
       const itemsToCreate: (CreateQRItemDTO & { dataUrl: string })[] =
         await Promise.all(
-          urls.map(async (url) => {
+          urls.map(async (url, index) => {
             const shortCode = generateShortCode();
-            const redirectUrl = `${env.APP_URL}/r/${shortCode}`;
-            const dataUrl = await generateQRDataUrl(redirectUrl, options);
+            const dataUrl = await generateQRDataUrl(url, options);
 
             return {
               batch_id: batch.id,
               original_url: url,
               qr_code_url: dataUrl, // Store data URL (or upload to storage)
               short_code: shortCode,
+              ...(itemName ? { name: `${itemName} ${index + 1}` } : {}),
               dataUrl,
             };
           })
         );
 
       // 3. Save QR items to database (exclude dataUrl from DB insert)
-      const itemsForDb = itemsToCreate.map((item) => ({
+      const itemsForDb: CreateQRItemDTO[] = itemsToCreate.map((item) => ({
         batch_id: item.batch_id,
         original_url: item.original_url,
         qr_code_url: item.qr_code_url,
         short_code: item.short_code,
+        ...(item.name ? { name: item.name } : {}),
       }));
       const createdItems = await qrItemApi.createMany(itemsForDb);
 

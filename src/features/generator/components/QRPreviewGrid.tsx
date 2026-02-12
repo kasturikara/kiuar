@@ -29,6 +29,11 @@ export const QRPreviewGrid = ({ items, onDownload }: QRPreviewGridProps) => {
             <img src={item.dataUrl} alt={`QR Code for ${item.url}`} />
           </figure>
           <div className="card-body p-4 pt-0">
+            {item.item?.name && (
+              <p className="text-sm font-semibold truncate" title={item.item.name}>
+                {item.item.name}
+              </p>
+            )}
             <p className="text-xs truncate" title={item.url}>
               {item.url}
             </p>

@@ -8,6 +8,8 @@ interface GeneratorState {
   // Batch metadata
   batchTitle: string;
   batchSource: "manual" | "csv";
+  // Optional item name prefix (each item gets "{name} 1", "{name} 2", etc.)
+  itemName: string;
   // QR generation options
   options: QRCodeGenerateOptions;
   // Generated QR items (after generation)
@@ -19,6 +21,7 @@ interface GeneratorState {
   clearUrls: () => void;
   setBatchTitle: (title: string) => void;
   setBatchSource: (source: "manual" | "csv") => void;
+  setItemName: (name: string) => void;
   setOptions: (options: Partial<QRCodeGenerateOptions>) => void;
   setGeneratedItems: (items: (QRItem & { dataUrl: string })[]) => void;
   reset: () => void;
@@ -28,6 +31,7 @@ const initialState = {
   urls: [],
   batchTitle: "",
   batchSource: "manual" as const,
+  itemName: "",
   options: {
     width: 256,
     margin: 2,
@@ -52,6 +56,7 @@ export const useGeneratorStore = create<GeneratorState>((set) => ({
   clearUrls: () => set({ urls: [], generatedItems: [] }),
   setBatchTitle: (batchTitle) => set({ batchTitle }),
   setBatchSource: (batchSource) => set({ batchSource }),
+  setItemName: (itemName) => set({ itemName }),
   setOptions: (options) =>
     set((state) => ({ options: { ...state.options, ...options } })),
   setGeneratedItems: (generatedItems) => set({ generatedItems }),

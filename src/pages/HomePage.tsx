@@ -17,7 +17,9 @@ const HomePage = () => {
   const options = useGeneratorStore((state) => state.options);
   const batchTitle = useGeneratorStore((state) => state.batchTitle);
   const batchSource = useGeneratorStore((state) => state.batchSource);
+  const itemName = useGeneratorStore((state) => state.itemName);
   const setBatchTitle = useGeneratorStore((state) => state.setBatchTitle);
+  const setItemName = useGeneratorStore((state) => state.setItemName);
   const setGeneratedItems = useGeneratorStore(
     (state) => state.setGeneratedItems
   );
@@ -40,6 +42,7 @@ const HomePage = () => {
         title: batchTitle,
         source: batchSource,
         options,
+        itemName: itemName || undefined,
       });
       setGeneratedItems(results);
     } catch (err) {
@@ -52,13 +55,18 @@ const HomePage = () => {
   };
 
   const handleDownload = (dataUrl: string, item: QRItem) => {
-    const hostname = new URL(item.original_url).hostname;
-    downloadImage(dataUrl, `qr-${hostname}-${item.short_code}.png`);
+    if (item.name) {
+      downloadImage(dataUrl, `qr-${item.name}.png`);
+    } else {
+      const hostname = new URL(item.original_url).hostname;
+      downloadImage(dataUrl, `qr-${hostname}-${item.short_code}.png`);
+    }
   };
 
   const handleReset = () => {
     clearUrls();
     setBatchTitle("");
+    setItemName("");
     setError(null);
   };
 
@@ -73,12 +81,20 @@ const HomePage = () => {
 
       <Card>
         <h2 className="text-xl font-semibold mb-4">Batch Settings</h2>
-        <Input
-          label="Batch Title"
-          placeholder="Enter a name for this batch (optional)"
-          value={batchTitle}
-          onChange={(e) => setBatchTitle(e.target.value)}
-        />
+        <div className="space-y-3">
+          <Input
+            label="Batch Title"
+            placeholder="Enter a name for this batch (optional)"
+            value={batchTitle}
+            onChange={(e) => setBatchTitle(e.target.value)}
+          />
+          <Input
+            label="Item Name"
+            placeholder="Optional name prefix, e.g. 'Product' -> Product 1, Product 2, ..."
+            value={itemName}
+            onChange={(e) => setItemName(e.target.value)}
+          />
+        </div>
       </Card>
 
       <Card>

@@ -16,6 +16,7 @@ export interface QRItem {
   original_url: string;
   qr_code_url: string;
   short_code: string;
+  name: string | null;
   scan_count: number;
   is_active: boolean;
   created_at: string;
@@ -46,6 +47,7 @@ export interface CreateQRItemDTO {
   original_url: string;
   qr_code_url: string;
   short_code: string;
+  name?: string;
 }
 
 export interface CreateQRScanDTO {
